@@ -201,23 +201,36 @@ void Game::handleCollisions() {
 
   // Proyectiles vs enemigos / jugador
   for (auto& p : projectiles) {
+    if (!p->isAlive()) continue;
 
-    if (!p->isAlive())
-      continue;
+    Circle cp = p->circleBounds();
 
     if (p->getOwner() == ProjectileOwner::Player) {
       for (auto& e : enemies) {
-        if (e->isAlive() && p->bounds().findIntersection(e->bounds())) {
-          p->destroy();
-          e->startDestroy();
-          break;
+        if (e->isAlive()) {
+          Circle ce = e->circleBounds();
+          sf::Vector2f diff = cp.center - ce.center;
+          float dist2 = diff.x*diff.x + diff.y*diff.y;
+          float rsum = cp.radius + ce.radius;
+
+          if (dist2 < rsum*rsum) {
+            p->destroy();
+            e->startDestroy();
+            break;
+          }
         }
       }
     } else {
-      if (player && player->isAlive() &&
-        p->bounds().findIntersection(player->bounds())) {
-        player->setAnimation(PlayerAnim::Destroy);
-        p->destroy();
+      if (player && player->isAlive()) {
+        Circle cpl = player->circleBounds();
+        sf::Vector2f diff = cp.center - cpl.center;
+        float dist2 = diff.x*diff.x + diff.y*diff.y;
+        float rsum = cp.radius + cpl.radius;
+
+        if (dist2 < rsum*rsum) {
+          player->setAnimation(PlayerAnim::Destroy);
+          p->destroy();
+        }
       }
     }
   }
@@ -234,10 +247,17 @@ void Game::handleCollisions() {
 
   // Player vs neutrales
   for (auto& n : neutrals) {
-    if (player && player->isAlive() &&
-      n->isAlive() &&
-      player->bounds().findIntersection(n->bounds())) {
-      player->setAnimation(PlayerAnim::Destroy);
+    if (player && player->isAlive() && n->isAlive()) {
+      Circle c1 = player->circleBounds();
+      Circle c2 = n->circleBounds();
+
+      sf::Vector2f diff = c1.center - c2.center;
+      float dist2 = diff.x*diff.x + diff.y*diff.y;
+      float rsum = c1.radius + c2.radius;
+
+      if (dist2 < rsum*rsum) {
+        player->setAnimation(PlayerAnim::Destroy);
+      }
     }
   }
 }

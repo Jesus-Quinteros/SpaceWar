@@ -19,6 +19,8 @@ public:
 
   ProjectileOwner getOwner() const { return owner; }
 
+  Circle circleBounds() const override;
+
 private:
   sf::Vector2f direction;
   float speed = 700.f;

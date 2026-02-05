@@ -7,6 +7,8 @@ public:
 
   void update(float dt) override;
 
+  Circle circleBounds() const override;
+
 private:
   float rotationSpeed;
 };

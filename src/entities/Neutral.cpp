@@ -25,3 +25,10 @@ void Neutral::update(float dt) {
     destroy();
 }
 
+Circle Neutral::circleBounds() const {
+  auto b = sprite->getGlobalBounds();
+  sf::Vector2f c(b.getCenter());
+  float r = std::min(b.size.x, b.size.y) * 0.4f;
+  return {c, r};
+}
+
