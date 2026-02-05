@@ -11,6 +11,7 @@ find_package(SFML 3 REQUIRED Graphics Window System Audio COMPONENTS)
 add_executable(${PROJECT_NAME}
   src/main.cpp
   src/core/Game.cpp
+  src/extras/Animation.cpp
   src/entities/Entity.cpp
   src/entities/Player.cpp
   src/entities/Projectile.cpp

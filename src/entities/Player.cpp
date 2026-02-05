@@ -2,18 +2,37 @@
 #include "../../include/utils/Config.hpp"
 #include <SFML/Window/Keyboard.hpp>
 
-Player::Player(sf::Texture& texture, sf::Vector2f targetPos)
-  : spawnTarget(targetPos) {
+Player::Player(
+  sf::Texture& idle,
+  std::vector<sf::Texture*>& upFrames,
+  std::vector<sf::Texture*>& downFrames,
+  std::vector<sf::Texture*>& destroyFrames,
+  sf::Vector2f targetPos
+) {
 
-  sprite.emplace(texture);
-  sprite->setTexture(texture);
+  sprite.emplace(idle);
+  sprite->setTexture(idle);
   sprite->setScale({Config::GLOBAL_SCALE, Config::GLOBAL_SCALE});
+
+  spawnTarget = targetPos;
 
   auto bounds = sprite->getLocalBounds();
   sprite->setOrigin({bounds.size.x / 2.f, bounds.size.y / 2.f});
 
   // Nace fuera de la pantalla
   sprite->setPosition({-150.f, targetPos.y});
+
+  animIdle.addFrame(idle);
+  animIdle.setFrameTime(0.f);
+
+  for (auto* t : upFrames) animUp.addFrame(*t);
+  for (auto* t : downFrames) animDown.addFrame(*t);
+  for (auto* t : destroyFrames) animDestroy.addFrame(*t);
+
+  animUp.setFrameTime(0.08f);
+  animDown.setFrameTime(0.08f);
+  animDestroy.setFrameTime(0.15f);
+  animDestroy.setLoop(false);
 }
 
 void Player::updateSpawning(float dt) {
@@ -47,27 +66,81 @@ void Player::shoot(std::vector<std::unique_ptr<Projectile>>& projectiles,
 }
 
 void Player::handleInput() {
-  velocity = {0.f, 0.f};
+    velocity = {0.f, 0.f};
 
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::W))
-      velocity.y -= speed;
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::S))
-      velocity.y += speed;
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A))
-      velocity.x -= speed;
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D))
-      velocity.x += speed;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::W)) {
+        velocity.y -= speed;
+        setAnimation(PlayerAnim::MoveUp);
+    }
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::S)) {
+        velocity.y += speed;
+        setAnimation(PlayerAnim::MoveDown);
+    }
+    else {
+        setAnimation(PlayerAnim::Idle);
+    }
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A))
+        velocity.x -= speed;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D))
+        velocity.x += speed;
 }
 
 void Player::update(float dt) {
-  if (state == PlayerState::Spawning) {
-    updateSpawning(dt);
-    return;
+    if (state == PlayerState::Spawning) {
+        updateSpawning(dt);
+        return;
+    }
+
+    if (state == PlayerState::Destroying) {
+        updateAnimation(dt);
+        if (animDestroy.finished()) {
+            state = PlayerState::Dead;
+            destroy();
+        }
+        return;
+    }
+
+    // Solo si está activo
+    shootTimer -= dt;
+    handleInput();
+    sprite->move(velocity * dt);
+    updateAnimation(dt);
+}
+
+void Player::setAnimation(PlayerAnim anim) {
+  if (currentAnim == anim) return;
+
+  currentAnim = anim;
+
+  switch (anim) {
+    case PlayerAnim::Idle:
+      animIdle.reset();
+      break;
+    case PlayerAnim::MoveUp:
+      animUp.reset();
+      break;
+    case PlayerAnim::MoveDown:
+      animDown.reset();
+      break;
+    case PlayerAnim::Destroy:
+      animDestroy.reset();
+      state = PlayerState::Destroying;
+      break;
+  }
+}
+
+void Player::updateAnimation(float dt) {
+  Animation* anim = nullptr;
+
+  switch (currentAnim) {
+    case PlayerAnim::Idle: anim = &animIdle; break;
+    case PlayerAnim::MoveUp: anim = &animUp; break;
+    case PlayerAnim::MoveDown: anim = &animDown; break;
+    case PlayerAnim::Destroy: anim = &animDestroy; break;
   }
 
-  shootTimer -= dt;
-
-  handleInput();
-  sprite->move(velocity * dt);
+  anim->update(dt);
+  sprite->setTexture(anim->getCurrentTexture());
 }
 

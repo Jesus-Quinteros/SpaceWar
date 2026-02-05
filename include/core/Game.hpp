@@ -48,6 +48,15 @@ private:
   float neutralSpawnRate = 4.f;
   std::vector<std::unique_ptr<Decorative>> decoratives;
   std::unique_ptr<DecorativeSpawner> decorativeSpawner;
+  
+  std::vector<sf::Texture> playerUpTextures;
+  std::vector<sf::Texture> playerDownTextures;
+  std::vector<sf::Texture> playerDestroyTextures;
+  std::vector<sf::Texture> enemyDestroyTextures;
 
+  std::vector<sf::Texture*> playerUpFrames;
+  std::vector<sf::Texture*> playerDownFrames;
+  std::vector<sf::Texture*> playerDestroyFrames;
+  std::vector<sf::Texture*> enemyDestroyFrames;
 };
 

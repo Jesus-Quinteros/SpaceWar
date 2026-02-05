@@ -4,6 +4,7 @@
 
 Enemy::Enemy(
   sf::Texture& texture,
+  std::vector<sf::Texture*>& destroyFrames,
   sf::Vector2f targetPos,
   EnemyShootType shootType,
   float fireRate,
@@ -22,6 +23,11 @@ Enemy::Enemy(
   sprite->setOrigin({b.size.x / 2.f, b.size.y / 2.f});
 
   sprite->setPosition({1400.f, targetPos.y});
+
+  for (auto* t : destroyFrames) animDestroy.addFrame(*t);
+
+  animDestroy.setFrameTime(0.15f);
+  animDestroy.setLoop(false);
 }
 
 void Enemy::updateSpawning(float dt) {
@@ -79,12 +85,29 @@ void Enemy::updateMovement(float dt) {
   sprite->move({0.f, velocity.y * dt});
 }
 
+void Enemy::startDestroy() {
+  state = EnemyState::Destroying;
+  animDestroy.reset();
+}
+
 void Enemy::update(float dt) {
   if (state == EnemyState::Spawning) {
     updateSpawning(dt);
     return;
   }
 
+  if (state == EnemyState::Destroying) {
+    animDestroy.update(dt);
+    sprite->setTexture(animDestroy.getCurrentTexture());
+
+    if (animDestroy.finished()) {
+      state = EnemyState::Dead;
+      destroy();
+    }
+    return;
+  }
+
+  // Solo si está activo
   fireTimer -= dt;
   updateMovement(dt);
 }

@@ -1,6 +1,7 @@
 #include "../../include/core/Game.hpp"
 #include <SFML/Window/Keyboard.hpp>
 #include <iostream>
+#include <string>
 
 Game::Game()
 : window(sf::VideoMode({1280, 720}), "Spaceship") {
@@ -8,14 +9,46 @@ Game::Game()
 
   worldBounds = sf::FloatRect({0.f, 0.f},{static_cast<float>(window.getSize().x), static_cast<float>(window.getSize().y)});
 
-  if (!playerTexture.loadFromFile("textures/player/neutral.png")) { std::cout << "ERROR al cargar playerTexture\n"; }
+  if (!playerTexture.loadFromFile("textures/player/neutralP1.png")) { std::cout << "ERROR al cargar playerTexture\n"; }
   if (!projectileTexture.loadFromFile("textures/flame-orange.png")) { std::cout << "ERROR al cargar projectileTexture\n"; }
   if (!projectileEnemyTexture.loadFromFile("textures/shot-blue.png")) { std::cout << "ERROR al cargar projectileEnemyTexture\n"; }
   if (!enemyTexture.loadFromFile("textures/enemy.png")) { std::cout << "ERROR al cargar enemyTexture\n"; }
   if (!neutralTexture.loadFromFile("textures/asteroide.png")) { std::cout << "ERROR al cargar neutralTexture\n"; }
 
+  playerUpTextures.reserve(3);
+  playerDownTextures.reserve(3);
+  playerDestroyTextures.reserve(7);
+  enemyDestroyTextures.reserve(7);
+
+  for (int i = 1; i <= 3; ++i) {
+    playerUpTextures.emplace_back();
+    if (!playerUpTextures.back().loadFromFile("textures/player/inclinedUpP10" + std::to_string(i) + ".png")) { std::cout << "ERROR up" << i << "\n"; }
+    playerUpFrames.push_back(&playerUpTextures.back());
+  }
+
+  for (int i = 1; i <= 3; ++i) {
+    playerDownTextures.emplace_back();
+    if (!playerDownTextures.back().loadFromFile("textures/player/inclinedDownP10" + std::to_string(i) + ".png")) { std::cout << "ERROR down" << i << "\n"; }
+    playerDownFrames.push_back(&playerDownTextures.back());
+  }
+
+  for (int i = 1; i <= 7; ++i) {
+    playerDestroyTextures.emplace_back();
+    if (!playerDestroyTextures.back().loadFromFile("textures/explosions/burst0" + std::to_string(i) + ".png")) { std::cout << "ERROR destroy" << i << "\n"; }
+    playerDestroyFrames.push_back(&playerDestroyTextures.back());
+  }
+
+  for (int i = 1; i <= 7; ++i) {
+    enemyDestroyTextures.emplace_back();
+    if (!enemyDestroyTextures.back().loadFromFile("textures/explosions/burst-orange0" + std::to_string(i) + ".png")) { std::cout << "ERROR destroy" << i << "\n"; }
+    enemyDestroyFrames.push_back(&enemyDestroyTextures.back());
+  }
+
   player = std::make_unique<Player>(
     playerTexture,
+    playerUpFrames,
+    playerDownFrames,
+    playerDestroyFrames,
     sf::Vector2f({200.f, window.getSize().y / 2.f})
   );
 
@@ -61,15 +94,25 @@ void Game::processEvents() {
 }
 
 void Game::update(float dt) {
-  if (player && player->isAlive()) {
-    player->update(dt);
-    clampEntity(*player);
-  }
-
+  
   for (auto& p : projectiles)
     p->update(dt);
 
   handleCollisions();
+
+  if (player && (player->isAlive() || player->isDestroying())) {
+    player->update(dt);
+    clampEntity(*player);
+  }
+
+  for (auto& e : enemies) {
+    e->update(dt);
+    clampEnemyVertical(*e);
+
+    if (player && e->isAlive()) {
+      e->shoot(projectiles, projectileEnemyTexture, player->bounds().getCenter());
+    }
+  }
 
   std::erase_if(projectiles,
       [](const auto& p) { return !p->isAlive(); });
@@ -81,19 +124,11 @@ void Game::update(float dt) {
     enemies.push_back(
       enemyFactory.create(
         enemyTexture,
+        enemyDestroyFrames,
         {1100.f, y}
       )
     );
     enemySpawnTimer = enemySpawnRate;
-  }
-
-  for (auto& e : enemies) {
-    e->update(dt);
-    clampEnemyVertical(*e);
-
-    if (player && e->isAlive()) {
-      e->shoot(projectiles, projectileEnemyTexture, player->bounds().getCenter());
-    }
   }
 
   std::erase_if(enemies,
@@ -145,12 +180,15 @@ void Game::render() {
   for (auto& p : projectiles)
     p->draw(window);
 
-  if (started && player && player->isAlive()) {
+  if (started && player && (player->isAlive() || player->isDestroying())) {
     player->draw(window);
   }
 
-  for (auto& e : enemies)
-    e->draw(window);
+  for (auto& e : enemies) {
+    if (e->isAlive() || e->isDestroying()) {
+      e->draw(window);
+    }
+  }
 
   if (gameOver) {
     // Más adelante: mostrar sprite de derrota
@@ -171,16 +209,15 @@ void Game::handleCollisions() {
       for (auto& e : enemies) {
         if (e->isAlive() && p->bounds().findIntersection(e->bounds())) {
           p->destroy();
-          e->destroy();
+          e->startDestroy();
           break;
         }
       }
     } else {
       if (player && player->isAlive() &&
         p->bounds().findIntersection(player->bounds())) {
+        player->setAnimation(PlayerAnim::Destroy);
         p->destroy();
-        player->destroy();
-        std::cout << "Jugador Destruido por Proyectil Enemigo\n";
       }
     }
   }
@@ -190,8 +227,8 @@ void Game::handleCollisions() {
     if (player && player->isAlive() &&
       e->isAlive() &&
       player->bounds().findIntersection(e->bounds())) {
-      player->destroy();
-      std::cout << "Jugador Destruido por Colision con Enemigo\n";
+      player->setAnimation(PlayerAnim::Destroy);
+      e->startDestroy();
     }
   }
 
@@ -200,8 +237,7 @@ void Game::handleCollisions() {
     if (player && player->isAlive() &&
       n->isAlive() &&
       player->bounds().findIntersection(n->bounds())) {
-      player->destroy();
-      std::cout << "Jugador Destruido por Neutral\n";
+      player->setAnimation(PlayerAnim::Destroy);
     }
   }
 }
