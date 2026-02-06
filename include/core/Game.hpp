@@ -10,6 +10,13 @@
 #include "../systems/EnemyFactory.hpp"
 #include "../systems/DecorativeSpawner.hpp"
 
+enum class GameState {
+  WaitingStart,
+  Playing,
+  GameOver,
+  Victory
+};
+
 class Game {
 public:
   Game();
@@ -29,11 +36,12 @@ private:
   sf::FloatRect worldBounds;
 
   bool running = true;
-  bool started = false; // Enter para comenzar
+  bool started = false;
   bool gameOver = false;
-  
-  sf::Texture playerTexture;
-  std::unique_ptr<Player> player;
+
+ GameState gameState = GameState::WaitingStart;
+  bool twoPlayers = false; 
+
   sf::Texture projectileTexture;
   sf::Texture projectileEnemyTexture;
   std::vector<std::unique_ptr<Projectile>> projectiles;
@@ -49,14 +57,28 @@ private:
   std::vector<std::unique_ptr<Decorative>> decoratives;
   std::unique_ptr<DecorativeSpawner> decorativeSpawner;
   
-  std::vector<sf::Texture> playerUpTextures;
-  std::vector<sf::Texture> playerDownTextures;
-  std::vector<sf::Texture> playerDestroyTextures;
   std::vector<sf::Texture> enemyDestroyTextures;
-
-  std::vector<sf::Texture*> playerUpFrames;
-  std::vector<sf::Texture*> playerDownFrames;
-  std::vector<sf::Texture*> playerDestroyFrames;
   std::vector<sf::Texture*> enemyDestroyFrames;
+
+  sf::Texture P1Texture;
+  std::unique_ptr<Player> player1;
+  sf::Texture P2Texture;
+  std::unique_ptr<Player> player2;
+
+  std::vector<sf::Texture> P1UpTextures;
+  std::vector<sf::Texture> P1DownTextures;
+  std::vector<sf::Texture> P1DestroyTextures;
+
+  std::vector<sf::Texture*> P1UpFrames;
+  std::vector<sf::Texture*> P1DownFrames;
+  std::vector<sf::Texture*> P1DestroyFrames;
+
+  std::vector<sf::Texture> P2UpTextures;
+  std::vector<sf::Texture> P2DownTextures;
+  std::vector<sf::Texture> P2DestroyTextures;
+
+  std::vector<sf::Texture*> P2UpFrames;
+  std::vector<sf::Texture*> P2DownFrames;
+  std::vector<sf::Texture*> P2DestroyFrames;
 };
 

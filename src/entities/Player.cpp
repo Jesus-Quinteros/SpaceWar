@@ -3,13 +3,17 @@
 #include <SFML/Window/Keyboard.hpp>
 
 Player::Player(
+  const PlayerControls& controls_,
   sf::Texture& idle,
   std::vector<sf::Texture*>& upFrames,
   std::vector<sf::Texture*>& downFrames,
   std::vector<sf::Texture*>& destroyFrames,
-  sf::Vector2f targetPos
-) {
+  sf::Vector2f targetPos,
+  std::vector<std::unique_ptr<Projectile>>& projectilesRef,
+  sf::Texture& projectileTex
+) : projectiles(projectilesRef), projectileTexture(projectileTex) {
 
+  controls = controls_;
   sprite.emplace(idle);
   sprite->setTexture(idle);
   sprite->setScale({Config::GLOBAL_SCALE, Config::GLOBAL_SCALE});
@@ -66,46 +70,48 @@ void Player::shoot(std::vector<std::unique_ptr<Projectile>>& projectiles,
 }
 
 void Player::handleInput() {
-    velocity = {0.f, 0.f};
+  velocity = {0.f, 0.f};
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::W)) {
-        velocity.y -= speed;
-        setAnimation(PlayerAnim::MoveUp);
-    }
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::S)) {
-        velocity.y += speed;
-        setAnimation(PlayerAnim::MoveDown);
-    }
-    else {
-        setAnimation(PlayerAnim::Idle);
-    }
+  if (sf::Keyboard::isKeyPressed(controls.up)) {
+    velocity.y -= speed;
+    setAnimation(PlayerAnim::MoveUp);
+  }
+  else if (sf::Keyboard::isKeyPressed(controls.down)) {
+    velocity.y += speed;
+    setAnimation(PlayerAnim::MoveDown);
+  }
+  else {
+    setAnimation(PlayerAnim::Idle);
+  }
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A))
-        velocity.x -= speed;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D))
-        velocity.x += speed;
+  if (sf::Keyboard::isKeyPressed(controls.left))
+    velocity.x -= speed;
+  if (sf::Keyboard::isKeyPressed(controls.right))
+    velocity.x += speed;
+  if (sf::Keyboard::isKeyPressed(controls.shoot))
+    shoot(projectiles, projectileTexture);
 }
 
 void Player::update(float dt) {
-    if (state == PlayerState::Spawning) {
-        updateSpawning(dt);
-        return;
-    }
+  if (state == PlayerState::Spawning) {
+    updateSpawning(dt);
+    return;
+  }
 
-    if (state == PlayerState::Destroying) {
-        updateAnimation(dt);
-        if (animDestroy.finished()) {
-            state = PlayerState::Dead;
-            destroy();
-        }
-        return;
-    }
-
-    // Solo si está activo
-    shootTimer -= dt;
-    handleInput();
-    sprite->move(velocity * dt);
+  if (state == PlayerState::Destroying) {
     updateAnimation(dt);
+    if (animDestroy.finished()) {
+      state = PlayerState::Dead;
+      destroy();
+    }
+    return;
+  }
+
+  // Solo si está activo
+  shootTimer -= dt;
+  handleInput();
+  sprite->move(velocity * dt);
+  updateAnimation(dt);
 }
 
 void Player::setAnimation(PlayerAnim anim) {

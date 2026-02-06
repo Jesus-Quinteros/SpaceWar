@@ -33,10 +33,10 @@ void Projectile::update(float dt) {
 }
 
 Circle Projectile::circleBounds() const {
-    auto b = sprite->getGlobalBounds();
-    sf::Vector2f c(b.getCenter());
+  auto b = sprite->getGlobalBounds();
+  sf::Vector2f c(b.getCenter());
 
-    float r = std::min(b.size.x, b.size.y) * 0.35f; 
-    return {c, r};
+  float r = std::min(b.size.x, b.size.y) * 0.35f; 
+  return {c, r};
 }
 

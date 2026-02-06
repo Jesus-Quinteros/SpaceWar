@@ -1,7 +1,24 @@
 #include "../../include/core/Game.hpp"
+#include "../../include/extras/PlayerControls.hpp"
 #include <SFML/Window/Keyboard.hpp>
 #include <iostream>
 #include <string>
+
+PlayerControls p1Controls {
+  sf::Keyboard::Key::W,
+  sf::Keyboard::Key::S,
+  sf::Keyboard::Key::A,
+  sf::Keyboard::Key::D,
+  sf::Keyboard::Key::P
+};
+
+PlayerControls p2Controls {
+  sf::Keyboard::Key::Up,
+  sf::Keyboard::Key::Down,
+  sf::Keyboard::Key::Left,
+  sf::Keyboard::Key::Right,
+  sf::Keyboard::Key::RControl
+};
 
 Game::Game()
 : window(sf::VideoMode({1280, 720}), "Spaceship") {
@@ -9,47 +26,75 @@ Game::Game()
 
   worldBounds = sf::FloatRect({0.f, 0.f},{static_cast<float>(window.getSize().x), static_cast<float>(window.getSize().y)});
 
-  if (!playerTexture.loadFromFile("textures/player/neutralP1.png")) { std::cout << "ERROR al cargar playerTexture\n"; }
+  if (!P1Texture.loadFromFile("textures/player/neutralP1.png")) { std::cout << "ERROR al cargar P1Texture\n"; }
+  if (!P2Texture.loadFromFile("textures/player/neutralP2.png")) { std::cout << "ERROR al cargar P2Texture\n"; }
   if (!projectileTexture.loadFromFile("textures/flame-orange.png")) { std::cout << "ERROR al cargar projectileTexture\n"; }
   if (!projectileEnemyTexture.loadFromFile("textures/shot-blue.png")) { std::cout << "ERROR al cargar projectileEnemyTexture\n"; }
   if (!enemyTexture.loadFromFile("textures/enemy.png")) { std::cout << "ERROR al cargar enemyTexture\n"; }
   if (!neutralTexture.loadFromFile("textures/asteroide.png")) { std::cout << "ERROR al cargar neutralTexture\n"; }
 
-  playerUpTextures.reserve(3);
-  playerDownTextures.reserve(3);
-  playerDestroyTextures.reserve(7);
+  P1UpTextures.reserve(3);
+  P1DownTextures.reserve(3);
+  P1DestroyTextures.reserve(7);
+
+  P2UpTextures.reserve(3);
+  P2DownTextures.reserve(3);
+  P2DestroyTextures.reserve(7);
+
   enemyDestroyTextures.reserve(7);
 
-  for (int i = 1; i <= 3; ++i) {
-    playerUpTextures.emplace_back();
-    if (!playerUpTextures.back().loadFromFile("textures/player/inclinedUpP10" + std::to_string(i) + ".png")) { std::cout << "ERROR up" << i << "\n"; }
-    playerUpFrames.push_back(&playerUpTextures.back());
-  }
-
-  for (int i = 1; i <= 3; ++i) {
-    playerDownTextures.emplace_back();
-    if (!playerDownTextures.back().loadFromFile("textures/player/inclinedDownP10" + std::to_string(i) + ".png")) { std::cout << "ERROR down" << i << "\n"; }
-    playerDownFrames.push_back(&playerDownTextures.back());
-  }
-
-  for (int i = 1; i <= 7; ++i) {
-    playerDestroyTextures.emplace_back();
-    if (!playerDestroyTextures.back().loadFromFile("textures/explosions/burst0" + std::to_string(i) + ".png")) { std::cout << "ERROR destroy" << i << "\n"; }
-    playerDestroyFrames.push_back(&playerDestroyTextures.back());
-  }
-
-  for (int i = 1; i <= 7; ++i) {
+   for (int i = 1; i <= 7; ++i) {
     enemyDestroyTextures.emplace_back();
     if (!enemyDestroyTextures.back().loadFromFile("textures/explosions/burst-orange0" + std::to_string(i) + ".png")) { std::cout << "ERROR destroy" << i << "\n"; }
     enemyDestroyFrames.push_back(&enemyDestroyTextures.back());
   }
 
-  player = std::make_unique<Player>(
-    playerTexture,
-    playerUpFrames,
-    playerDownFrames,
-    playerDestroyFrames,
-    sf::Vector2f({200.f, window.getSize().y / 2.f})
+  for (int i = 1; i <= 3; ++i) {
+    P1UpTextures.emplace_back();
+    if (!P1UpTextures.back().loadFromFile("textures/player/inclinedUpP10" + std::to_string(i) + ".png")) { std::cout << "ERROR upP1" << i << "\n"; }
+    P1UpFrames.push_back(&P1UpTextures.back());
+  }
+
+  for (int i = 1; i <= 3; ++i) {
+    P1DownTextures.emplace_back();
+    if (!P1DownTextures.back().loadFromFile("textures/player/inclinedDownP10" + std::to_string(i) + ".png")) { std::cout << "ERROR downP1" << i << "\n"; }
+    P1DownFrames.push_back(&P1DownTextures.back());
+  }
+
+  for (int i = 1; i <= 7; ++i) {
+    P1DestroyTextures.emplace_back();
+    if (!P1DestroyTextures.back().loadFromFile("textures/explosions/burst0" + std::to_string(i) + ".png")) { std::cout << "ERROR destroyP1" << i << "\n"; }
+    P1DestroyFrames.push_back(&P1DestroyTextures.back());
+  }
+
+  for (int i = 1; i <= 3; ++i) {
+    P2UpTextures.emplace_back();
+    if (!P2UpTextures.back().loadFromFile("textures/player/inclinedUpP20" + std::to_string(i) + ".png")) { std::cout << "ERROR upP2" << i << "\n"; }
+    P2UpFrames.push_back(&P2UpTextures.back());
+  }
+
+  for (int i = 1; i <= 3; ++i) {
+    P2DownTextures.emplace_back();
+    if (!P2DownTextures.back().loadFromFile("textures/player/inclinedDownP20" + std::to_string(i) + ".png")) { std::cout << "ERROR downP2" << i << "\n"; }
+    P2DownFrames.push_back(&P2DownTextures.back());
+  }
+
+  for (int i = 1; i <= 7; ++i) {
+    P2DestroyTextures.emplace_back();
+    if (!P2DestroyTextures.back().loadFromFile("textures/explosions/burst0" + std::to_string(i) + ".png")) { std::cout << "ERROR destroyP2" << i << "\n"; }
+    P2DestroyFrames.push_back(&P2DestroyTextures.back());
+  }
+
+  player1 = std::make_unique<Player>(
+    p1Controls, P1Texture, P1UpFrames, P1DownFrames, P1DestroyFrames,
+    sf::Vector2f({200.f, window.getSize().y / 3.f}),
+    projectiles, projectileTexture
+  );
+
+  player2 = std::make_unique<Player>(
+    p2Controls, P2Texture, P2UpFrames, P2DownFrames, P2DestroyFrames,
+    sf::Vector2f({220.f, window.getSize().y / 2.f}),
+    projectiles, projectileTexture
   );
 
   decorativeSpawner = std::make_unique<DecorativeSpawner>(window.getSize());
@@ -82,12 +127,21 @@ void Game::processEvents() {
       if (key->scancode == sf::Keyboard::Scancode::Escape) {
         window.close();
       }
-      if (key->scancode == sf::Keyboard::Scancode::Enter) {
-        started = true;
-        std::cout << "Juego Iniciado" << std::endl;
-      }
-      if (key->scancode == sf::Keyboard::Scancode::P && player) {
-        player->shoot(projectiles, projectileTexture);
+
+      if (gameState == GameState::WaitingStart) {
+        if (key->scancode == sf::Keyboard::Scancode::Up) {
+          twoPlayers = false;
+          std::cout << "Seleccionado: 1 jugador\n";
+        }
+        if (key->scancode == sf::Keyboard::Scancode::Down) {
+          twoPlayers = true;
+          std::cout << "Seleccionado: 2 jugadores\n";
+        }
+        if (key->scancode == sf::Keyboard::Scancode::Enter) {
+          started = true;
+          gameState = GameState::Playing;
+          std::cout << "Juego Iniciado con " << (twoPlayers ? 2 : 1) << " jugador(es)\n";
+        }
       }
     }
   }
@@ -100,17 +154,33 @@ void Game::update(float dt) {
 
   handleCollisions();
 
-  if (player && (player->isAlive() || player->isDestroying())) {
-    player->update(dt);
-    clampEntity(*player);
+  if (player1 && (player1->isAlive() || player1->isDestroying())) {
+    player1->update(dt);
+    clampEntity(*player1);
+  }
+
+  if (twoPlayers && player2 && (player2->isAlive() || player2->isDestroying())) {
+    player2->update(dt);
+    clampEntity(*player2);
   }
 
   for (auto& e : enemies) {
     e->update(dt);
     clampEnemyVertical(*e);
 
-    if (player && e->isAlive()) {
-      e->shoot(projectiles, projectileEnemyTexture, player->bounds().getCenter());
+    std::vector<Player*> alivePlayers;
+    if (player1 && player1->isAlive()) alivePlayers.push_back(player1.get());
+    if (twoPlayers && player2 && player2->isAlive()) alivePlayers.push_back(player2.get());
+
+    if (!alivePlayers.empty()) {
+      // Elegir uno al azar
+      static std::mt19937 rng{std::random_device{}()};
+      std::uniform_int_distribution<size_t> dist(0, alivePlayers.size() - 1);
+
+      Player* target = alivePlayers[dist(rng)];
+      sf::Vector2f targetPos = target->bounds().getCenter();
+
+      e->shoot(projectiles, projectileEnemyTexture, targetPos);
     }
   }
 
@@ -119,7 +189,7 @@ void Game::update(float dt) {
 
   enemySpawnTimer -= dt;
 
-  if (enemySpawnTimer <= 0.f && player) {
+  if (enemySpawnTimer <= 0.f && player1) {
     float y = static_cast<float>(rand() % window.getSize().y);
     enemies.push_back(
       enemyFactory.create(
@@ -180,8 +250,12 @@ void Game::render() {
   for (auto& p : projectiles)
     p->draw(window);
 
-  if (started && player && (player->isAlive() || player->isDestroying())) {
-    player->draw(window);
+  if (started && player1 && (player1->isAlive() || player1->isDestroying())) {
+    player1->draw(window);
+  }
+
+  if (twoPlayers && started && player2 && (player2->isAlive() || player2->isDestroying())) {
+    player2->draw(window);
   }
 
   for (auto& e : enemies) {
@@ -221,14 +295,25 @@ void Game::handleCollisions() {
         }
       }
     } else {
-      if (player && player->isAlive()) {
-        Circle cpl = player->circleBounds();
+      if (player1 && player1->isAlive()) {
+        Circle cpl = player1->circleBounds();
         sf::Vector2f diff = cp.center - cpl.center;
         float dist2 = diff.x*diff.x + diff.y*diff.y;
         float rsum = cp.radius + cpl.radius;
 
         if (dist2 < rsum*rsum) {
-          player->setAnimation(PlayerAnim::Destroy);
+          player1->setAnimation(PlayerAnim::Destroy);
+          p->destroy();
+        }
+      }
+      if (twoPlayers && player2 && player2->isAlive()) {
+        Circle cpl2 = player2->circleBounds();
+        sf::Vector2f diff = cp.center - cpl2.center;
+        float dist2 = diff.x*diff.x + diff.y*diff.y;
+        float rsum = cp.radius + cpl2.radius;
+
+        if (dist2 < rsum*rsum) {
+          player2->setAnimation(PlayerAnim::Destroy);
           p->destroy();
         }
       }
@@ -237,18 +322,22 @@ void Game::handleCollisions() {
 
   // Player vs enemigo
   for (auto& e : enemies) {
-    if (player && player->isAlive() &&
-      e->isAlive() &&
-      player->bounds().findIntersection(e->bounds())) {
-      player->setAnimation(PlayerAnim::Destroy);
+    if (player1 && player1->isAlive() && e->isAlive() &&
+      player1->bounds().findIntersection(e->bounds())) {
+      player1->setAnimation(PlayerAnim::Destroy);
+      e->startDestroy();
+    }
+    if (twoPlayers && player2 && player2->isAlive() && e->isAlive() &&
+      player2->bounds().findIntersection(e->bounds())) {
+      player2->setAnimation(PlayerAnim::Destroy);
       e->startDestroy();
     }
   }
 
   // Player vs neutrales
   for (auto& n : neutrals) {
-    if (player && player->isAlive() && n->isAlive()) {
-      Circle c1 = player->circleBounds();
+    if (player1 && player1->isAlive() && n->isAlive()) {
+      Circle c1 = player1->circleBounds();
       Circle c2 = n->circleBounds();
 
       sf::Vector2f diff = c1.center - c2.center;
@@ -256,15 +345,31 @@ void Game::handleCollisions() {
       float rsum = c1.radius + c2.radius;
 
       if (dist2 < rsum*rsum) {
-        player->setAnimation(PlayerAnim::Destroy);
+        player1->setAnimation(PlayerAnim::Destroy);
+      }
+    }
+    if (twoPlayers && player2 && player2->isAlive() && n->isAlive()) {
+      Circle c1 = player2->circleBounds();
+      Circle c2 = n->circleBounds();
+
+      sf::Vector2f diff = c1.center - c2.center;
+      float dist2 = diff.x*diff.x + diff.y*diff.y;
+      float rsum = c1.radius + c2.radius;
+
+      if (dist2 < rsum*rsum) {
+        player2->setAnimation(PlayerAnim::Destroy);
       }
     }
   }
 }
 
 void Game::checkGameOver() {
-  if (player && !player->isAlive()) {
+  bool p1Dead = player1 && !player1->isAlive();
+  bool p2Dead = twoPlayers && player2 && !player2->isAlive();
+
+  if (p1Dead && (!twoPlayers || p2Dead)) {
     gameOver = true;
+    gameState = GameState::GameOver;
   }
 }
 
@@ -285,16 +390,16 @@ void Game::clampEntity(Entity& entity) {
   sf::Vector2f newPos = entity.bounds().getCenter();
 
   if (entityLeft < worldLeft)
-      newPos.x += worldLeft - entityLeft;
+    newPos.x += worldLeft - entityLeft;
 
   if (entityRight > worldRight)
-      newPos.x -= entityRight - worldRight;
+    newPos.x -= entityRight - worldRight;
 
   if (entityTop < worldTop)
-      newPos.y += worldTop - entityTop;
+    newPos.y += worldTop - entityTop;
 
   if (entityBottom > worldBottom)
-      newPos.y -= entityBottom - worldBottom;
+    newPos.y -= entityBottom - worldBottom;
 
   entity.setPosition(
     entity.getPosition() +
