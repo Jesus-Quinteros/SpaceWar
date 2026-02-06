@@ -9,7 +9,7 @@ PlayerControls p1Controls {
   sf::Keyboard::Key::S,
   sf::Keyboard::Key::A,
   sf::Keyboard::Key::D,
-  sf::Keyboard::Key::P
+  sf::Keyboard::Key::T
 };
 
 PlayerControls p2Controls {
@@ -17,7 +17,7 @@ PlayerControls p2Controls {
   sf::Keyboard::Key::Down,
   sf::Keyboard::Key::Left,
   sf::Keyboard::Key::Right,
-  sf::Keyboard::Key::RControl
+  sf::Keyboard::Key::RShift
 };
 
 Game::Game()
