@@ -21,17 +21,37 @@ PlayerControls p2Controls {
 };
 
 Game::Game()
-: window(sf::VideoMode({1280, 720}), "Spaceship") {
+: window(sf::VideoMode({1280, 720}), "SpaceWar") {
   window.setFramerateLimit(60);
 
   worldBounds = sf::FloatRect({0.f, 0.f},{static_cast<float>(window.getSize().x), static_cast<float>(window.getSize().y)});
 
+  if (!p1LogoTexture.loadFromFile("textures/logos/p1Logo.png")) { std::cout << "ERROR al cargar gameOverTexture\n"; }
+  if (!p2LogoTexture.loadFromFile("textures/logos/p2Logo.png")) { std::cout << "ERROR al cargar gameOverTexture\n"; }
+  if (!enemyLogoTexture.loadFromFile("textures/logos/enemyLogo.png")) { std::cout << "ERROR al cargar gameOverTexture\n"; }
+  if (!neutralLogoTexture.loadFromFile("textures/logos/asteroidLogo.png")) { std::cout << "ERROR al cargar gameOverTexture\n"; }
+  if (!gameOverLogoTexture.loadFromFile("textures/logos/gameoverLogo.png")) { std::cout << "ERROR al cargar gameOverTexture\n"; }
+
+  p1Logo.emplace(p1LogoTexture);
+  p2Logo.emplace(p2LogoTexture);
+  enemyLogo.emplace(enemyLogoTexture);
+  neutralLogo.emplace(neutralLogoTexture);
+  gameOverLogo.emplace(gameOverLogoTexture);
+
+  if (!titleFont.openFromFile("fonts/Asteroid Blaster.ttf")) { std::cout << "ERROR al cargar titleFont\n"; }
+  if (!menuFont.openFromFile("fonts/Adventure Hollow.otf")) { std::cout << "ERROR al cargar menuFont\n"; }
+  if (!restartfont.openFromFile("fonts/Bebas-Regular.otf")) { std::cout << "ERROR al cargar restartfont\n"; }
+
+  menu.emplace(menuFont);
+  title.emplace(titleFont);
+  restart.emplace(restartfont);
+
   if (!P1Texture.loadFromFile("textures/player/neutralP1.png")) { std::cout << "ERROR al cargar P1Texture\n"; }
   if (!P2Texture.loadFromFile("textures/player/neutralP2.png")) { std::cout << "ERROR al cargar P2Texture\n"; }
-  if (!projectileTexture.loadFromFile("textures/flame-orange.png")) { std::cout << "ERROR al cargar projectileTexture\n"; }
-  if (!projectileEnemyTexture.loadFromFile("textures/shot-blue.png")) { std::cout << "ERROR al cargar projectileEnemyTexture\n"; }
-  if (!enemyTexture.loadFromFile("textures/enemy.png")) { std::cout << "ERROR al cargar enemyTexture\n"; }
-  if (!neutralTexture.loadFromFile("textures/asteroide.png")) { std::cout << "ERROR al cargar neutralTexture\n"; }
+  if (!projectileTexture.loadFromFile("textures/shots/flame-orange.png")) { std::cout << "ERROR al cargar projectileTexture\n"; }
+  if (!projectileEnemyTexture.loadFromFile("textures/shots/shot-blue.png")) { std::cout << "ERROR al cargar projectileEnemyTexture\n"; }
+  if (!enemyTexture.loadFromFile("textures/enemies/enemy.png")) { std::cout << "ERROR al cargar enemyTexture\n"; }
+  if (!neutralTexture.loadFromFile("textures/neutrals/asteroid.png")) { std::cout << "ERROR al cargar neutralTexture\n"; }
 
   P1UpTextures.reserve(3);
   P1DownTextures.reserve(3);
@@ -131,16 +151,41 @@ void Game::processEvents() {
       if (gameState == GameState::WaitingStart) {
         if (key->scancode == sf::Keyboard::Scancode::Up) {
           twoPlayers = false;
-          std::cout << "Seleccionado: 1 jugador\n";
+          menu->setSelection(false);
         }
         if (key->scancode == sf::Keyboard::Scancode::Down) {
           twoPlayers = true;
-          std::cout << "Seleccionado: 2 jugadores\n";
+          menu->setSelection(true);
         }
         if (key->scancode == sf::Keyboard::Scancode::Enter) {
           started = true;
           gameState = GameState::Playing;
-          std::cout << "Juego Iniciado con " << (twoPlayers ? 2 : 1) << " jugador(es)\n";
+        }
+      } else if (gameState == GameState::GameOver) {
+        if (key->scancode == sf::Keyboard::Scancode::Enter) {
+
+          gameState = GameState::WaitingStart;
+          gameState = GameState::WaitingStart;
+          started = false;
+          gameOver = false;
+
+          enemies.clear();
+          projectiles.clear();
+          neutrals.clear();
+
+          player1 = std::make_unique<Player>(
+            p1Controls, P1Texture, P1UpFrames, P1DownFrames, P1DestroyFrames,
+            sf::Vector2f({200.f, window.getSize().y / 3.f}),
+            projectiles, projectileTexture
+          );
+
+          if (twoPlayers) {
+            player2 = std::make_unique<Player>(
+              p2Controls, P2Texture, P2UpFrames, P2DownFrames, P2DestroyFrames,
+              sf::Vector2f({200.f, window.getSize().y / 2.f}),
+              projectiles, projectileTexture
+            );
+          }
         }
       }
     }
@@ -241,31 +286,62 @@ void Game::update(float dt) {
 void Game::render() {
   window.clear(sf::Color(16,27,45));
 
-  for (auto& d : decoratives)
-    d->draw(window);
+  if (gameState == GameState::WaitingStart) {
 
-  for (auto& n : neutrals)
-    n->draw(window);
+    for (auto& d : decoratives)
+      d->draw(window);
 
-  for (auto& p : projectiles)
-    p->draw(window);
+    p1Logo->draw(window);
+    p2Logo->draw(window);
+    enemyLogo->draw(window);
+    neutralLogo->draw(window);
 
-  if (started && player1 && (player1->isAlive() || player1->isDestroying())) {
-    player1->draw(window);
-  }
+    title->draw(window);
+    menu->draw(window);
 
-  if (twoPlayers && started && player2 && (player2->isAlive() || player2->isDestroying())) {
-    player2->draw(window);
-  }
+  } else if (gameState == GameState::Playing) {
 
-  for (auto& e : enemies) {
-    if (e->isAlive() || e->isDestroying()) {
-      e->draw(window);
+    for (auto& d : decoratives)
+      d->draw(window);
+
+    for (auto& n : neutrals)
+      n->draw(window);
+
+    for (auto& p : projectiles)
+      p->draw(window);
+
+    if (started && player1 && (player1->isAlive() || player1->isDestroying())) {
+      player1->draw(window);
     }
-  }
 
-  if (gameOver) {
-    // Más adelante: mostrar sprite de derrota
+    if (twoPlayers && started && player2 && (player2->isAlive() || player2->isDestroying())) {
+      player2->draw(window);
+    }
+
+    for (auto& e : enemies) {
+      if (e->isAlive() || e->isDestroying()) {
+        e->draw(window);
+      }
+    }
+  } else if (gameState == GameState::GameOver) {
+
+    for (auto& d : decoratives)
+      d->draw(window);
+
+    gameOverLogo->draw(window);
+    restart->draw(window);
+
+    for (auto& n : neutrals)
+      n->draw(window);
+
+    for (auto& p : projectiles)
+      p->draw(window);
+
+    for (auto& e : enemies) {
+      if (e->isAlive() || e->isDestroying()) {
+        e->draw(window);
+      }
+    }
   }
 
   window.display();

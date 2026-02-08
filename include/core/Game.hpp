@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/Texture.hpp>
 #include <memory>
 
 #include "../entities/Player.hpp"
@@ -9,6 +10,8 @@
 #include "../entities/Decorative.hpp"
 #include "../systems/EnemyFactory.hpp"
 #include "../systems/DecorativeSpawner.hpp"
+#include "../extras/Text.hpp"
+#include "../extras/Logo.hpp"
 
 enum class GameState {
   WaitingStart,
@@ -39,8 +42,27 @@ private:
   bool started = false;
   bool gameOver = false;
 
- GameState gameState = GameState::WaitingStart;
+  GameState gameState = GameState::WaitingStart;
   bool twoPlayers = false; 
+
+  sf::Font menuFont;
+  sf::Font titleFont;
+  sf::Font restartfont;
+  std::optional<Menu> menu;
+  std::optional<Title> title;
+  std::optional<Restart> restart;
+
+  sf::Texture p1LogoTexture;
+  sf::Texture p2LogoTexture;
+  sf::Texture enemyLogoTexture;
+  sf::Texture neutralLogoTexture;
+  sf::Texture gameOverLogoTexture;
+
+  std::optional<P1Logo> p1Logo;
+  std::optional<P2Logo> p2Logo;
+  std::optional<EnemyLogo> enemyLogo;
+  std::optional<NeutralLogo> neutralLogo;
+  std::optional<GameOverLogo> gameOverLogo;
 
   sf::Texture projectileTexture;
   sf::Texture projectileEnemyTexture;

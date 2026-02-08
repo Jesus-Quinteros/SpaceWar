@@ -1,6 +1,6 @@
 #pragma once
 
 namespace Config {
-  inline float GLOBAL_SCALE = 1.0f;
+  inline float GLOBAL_SCALE = 0.6f;
 }
 
