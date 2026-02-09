@@ -20,11 +20,16 @@ PlayerControls p2Controls {
   sf::Keyboard::Key::RShift
 };
 
+bool collisionSoundOcurredP1, collisionSoundOcurredP2 = false;
+
 Game::Game()
 : window(sf::VideoMode({1280, 720}), "SpaceWar") {
   window.setFramerateLimit(60);
 
   worldBounds = sf::FloatRect({0.f, 0.f},{static_cast<float>(window.getSize().x), static_cast<float>(window.getSize().y)});
+
+  audio.loadResources();
+  audio.playMusic(MusicType::Menu);
 
   if (!p1LogoTexture.loadFromFile("textures/logos/p1Logo.png")) { std::cout << "ERROR al cargar gameOverTexture\n"; }
   if (!p2LogoTexture.loadFromFile("textures/logos/p2Logo.png")) { std::cout << "ERROR al cargar gameOverTexture\n"; }
@@ -108,13 +113,13 @@ Game::Game()
   player1 = std::make_unique<Player>(
     p1Controls, P1Texture, P1UpFrames, P1DownFrames, P1DestroyFrames,
     sf::Vector2f({200.f, window.getSize().y / 3.f}),
-    projectiles, projectileTexture
+    projectiles, projectileTexture, audio
   );
 
   player2 = std::make_unique<Player>(
     p2Controls, P2Texture, P2UpFrames, P2DownFrames, P2DestroyFrames,
     sf::Vector2f({220.f, window.getSize().y / 2.f}),
-    projectiles, projectileTexture
+    projectiles, projectileTexture, audio
   );
 
   decorativeSpawner = std::make_unique<DecorativeSpawner>(window.getSize());
@@ -149,17 +154,28 @@ void Game::processEvents() {
       }
 
       if (gameState == GameState::WaitingStart) {
-        if (key->scancode == sf::Keyboard::Scancode::Up) {
+        if (key->scancode == sf::Keyboard::Scancode::Up && twoPlayers) {
           twoPlayers = false;
           menu->setSelection(false);
-        }
-        if (key->scancode == sf::Keyboard::Scancode::Down) {
+          audio.playSound(SoundType::Select);
+        } else if (key->scancode == sf::Keyboard::Scancode::Up) {
           twoPlayers = true;
           menu->setSelection(true);
+          audio.playSound(SoundType::Select);
+        }
+        if (key->scancode == sf::Keyboard::Scancode::Down && !twoPlayers) {
+          twoPlayers = true;
+          menu->setSelection(true);
+          audio.playSound(SoundType::Select);
+        } else if (key->scancode == sf::Keyboard::Scancode::Down) {
+          twoPlayers = false;
+          menu->setSelection(false);
+          audio.playSound(SoundType::Select);
         }
         if (key->scancode == sf::Keyboard::Scancode::Enter) {
           started = true;
           gameState = GameState::Playing;
+          audio.playMusic(MusicType::Gameplay);
         }
       } else if (gameState == GameState::GameOver) {
         if (key->scancode == sf::Keyboard::Scancode::Enter) {
@@ -168,6 +184,7 @@ void Game::processEvents() {
           gameState = GameState::WaitingStart;
           started = false;
           gameOver = false;
+          collisionSoundOcurredP1 = collisionSoundOcurredP2 = false;
 
           enemies.clear();
           projectiles.clear();
@@ -176,14 +193,14 @@ void Game::processEvents() {
           player1 = std::make_unique<Player>(
             p1Controls, P1Texture, P1UpFrames, P1DownFrames, P1DestroyFrames,
             sf::Vector2f({200.f, window.getSize().y / 3.f}),
-            projectiles, projectileTexture
+            projectiles, projectileTexture, audio
           );
 
           if (twoPlayers) {
             player2 = std::make_unique<Player>(
               p2Controls, P2Texture, P2UpFrames, P2DownFrames, P2DestroyFrames,
               sf::Vector2f({200.f, window.getSize().y / 2.f}),
-              projectiles, projectileTexture
+              projectiles, projectileTexture, audio
             );
           }
         }
@@ -366,6 +383,7 @@ void Game::handleCollisions() {
           if (dist2 < rsum*rsum) {
             p->destroy();
             e->startDestroy();
+            audio.playSound(SoundType::EnemyExplosion);
             break;
           }
         }
@@ -379,6 +397,10 @@ void Game::handleCollisions() {
 
         if (dist2 < rsum*rsum) {
           player1->setAnimation(PlayerAnim::Destroy);
+          if (!collisionSoundOcurredP1) {
+            audio.playSound(SoundType::PlayerExplosion);
+            collisionSoundOcurredP1 = true;
+          }
           p->destroy();
         }
       }
@@ -390,6 +412,10 @@ void Game::handleCollisions() {
 
         if (dist2 < rsum*rsum) {
           player2->setAnimation(PlayerAnim::Destroy);
+          if (!collisionSoundOcurredP2) {
+            audio.playSound(SoundType::PlayerExplosion);
+            collisionSoundOcurredP2 = true;
+          }
           p->destroy();
         }
       }
@@ -401,11 +427,19 @@ void Game::handleCollisions() {
     if (player1 && player1->isAlive() && e->isAlive() &&
       player1->bounds().findIntersection(e->bounds())) {
       player1->setAnimation(PlayerAnim::Destroy);
+      if (!collisionSoundOcurredP1) {
+        audio.playSound(SoundType::PlayerExplosion);
+        collisionSoundOcurredP1 = true;
+      }
       e->startDestroy();
     }
     if (twoPlayers && player2 && player2->isAlive() && e->isAlive() &&
       player2->bounds().findIntersection(e->bounds())) {
       player2->setAnimation(PlayerAnim::Destroy);
+      if (!collisionSoundOcurredP2) {
+        audio.playSound(SoundType::PlayerExplosion);
+        collisionSoundOcurredP2 = true;
+      }
       e->startDestroy();
     }
   }
@@ -422,6 +456,10 @@ void Game::handleCollisions() {
 
       if (dist2 < rsum*rsum) {
         player1->setAnimation(PlayerAnim::Destroy);
+        if (!collisionSoundOcurredP1) {
+          audio.playSound(SoundType::PlayerExplosion);
+          collisionSoundOcurredP1 = true;
+        }
       }
     }
     if (twoPlayers && player2 && player2->isAlive() && n->isAlive()) {
@@ -434,6 +472,10 @@ void Game::handleCollisions() {
 
       if (dist2 < rsum*rsum) {
         player2->setAnimation(PlayerAnim::Destroy);
+        if (!collisionSoundOcurredP2) {
+          audio.playSound(SoundType::PlayerExplosion);
+          collisionSoundOcurredP2 = true;
+        }
       }
     }
   }
@@ -444,8 +486,14 @@ void Game::checkGameOver() {
   bool p2Dead = twoPlayers && player2 && !player2->isAlive();
 
   if (p1Dead && (!twoPlayers || p2Dead)) {
-    gameOver = true;
-    gameState = GameState::GameOver;
+    if (gameState != GameState::GameOver) { 
+      // Solo entrar aquí la primera vez
+      gameOver = true;
+      gameState = GameState::GameOver;
+
+      audio.playSound(SoundType::GameOver);
+    }
+    audio.playMusic(MusicType::Menu);
   }
 }
 

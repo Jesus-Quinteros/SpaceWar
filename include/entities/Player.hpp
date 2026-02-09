@@ -3,6 +3,7 @@
 #include "Projectile.hpp"
 #include "../extras/Animation.hpp"
 #include "../extras/PlayerControls.hpp"
+#include "../extras/AudioManager.hpp"
 
 #include <vector>
 #include <memory>
@@ -31,7 +32,8 @@ public:
     std::vector<sf::Texture*>& destroyFrames,
     sf::Vector2f targetPos,
     std::vector<std::unique_ptr<Projectile>>& projectiles,
-    sf::Texture& projectileTexture
+    sf::Texture& projectileTexture,
+    AudioManager& audio
   );
 
   void update(float dt) override;
@@ -48,6 +50,7 @@ private:
 
 private:
   PlayerControls controls;
+  AudioManager& audio;
   PlayerState state = PlayerState::Spawning;
 
   float speed = 300.f;

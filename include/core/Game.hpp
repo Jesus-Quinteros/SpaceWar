@@ -12,6 +12,7 @@
 #include "../systems/DecorativeSpawner.hpp"
 #include "../extras/Text.hpp"
 #include "../extras/Logo.hpp"
+#include "../extras/AudioManager.hpp"
 
 enum class GameState {
   WaitingStart,
@@ -44,6 +45,8 @@ private:
 
   GameState gameState = GameState::WaitingStart;
   bool twoPlayers = false; 
+
+  AudioManager audio;
 
   sf::Font menuFont;
   sf::Font titleFont;

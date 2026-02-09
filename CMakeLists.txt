@@ -14,6 +14,7 @@ add_executable(${PROJECT_NAME}
   src/extras/Animation.cpp
   src/extras/Text.cpp
   src/extras/Logo.cpp
+  src/extras/AudioManager.cpp
   src/entities/Entity.cpp
   src/entities/Player.cpp
   src/entities/Projectile.cpp

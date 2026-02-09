@@ -1,5 +1,6 @@
 #include "../../include/entities/Player.hpp"
 #include "../../include/utils/Config.hpp"
+#include <SFML/Audio/AudioResource.hpp>
 #include <SFML/Window/Keyboard.hpp>
 
 Player::Player(
@@ -10,8 +11,9 @@ Player::Player(
   std::vector<sf::Texture*>& destroyFrames,
   sf::Vector2f targetPos,
   std::vector<std::unique_ptr<Projectile>>& projectilesRef,
-  sf::Texture& projectileTex
-) : projectiles(projectilesRef), projectileTexture(projectileTex) {
+  sf::Texture& projectileTex,
+  AudioManager& audioRef
+) : projectiles(projectilesRef), projectileTexture(projectileTex), audio(audioRef) {
 
   controls = controls_;
   sprite.emplace(idle);
@@ -35,7 +37,7 @@ Player::Player(
 
   animUp.setFrameTime(0.08f);
   animDown.setFrameTime(0.08f);
-  animDestroy.setFrameTime(0.15f);
+  animDestroy.setFrameTime(0.40f);
   animDestroy.setLoop(false);
 }
 
@@ -67,6 +69,7 @@ void Player::shoot(std::vector<std::unique_ptr<Projectile>>& projectiles,
   );
 
   shootTimer = shootCooldown;
+  audio.playSound(SoundType::PlayerShoot);
 }
 
 void Player::handleInput() {
