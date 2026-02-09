@@ -67,3 +67,15 @@ void GameOverLogo::draw(sf::RenderWindow& window) {
   window.draw(*gameOverLogo);
 }
 
+VictoryLogo::VictoryLogo(sf::Texture& texture) {
+  victoryLogo.emplace(texture);
+  victoryLogo->setTexture(texture);
+  sf::FloatRect bounds = victoryLogo->getLocalBounds();
+  victoryLogo->setOrigin(bounds.getCenter());
+  victoryLogo->setPosition({640.f, 360.f});
+}
+
+void VictoryLogo::draw(sf::RenderWindow& window) {
+  window.draw(*victoryLogo);
+}
+

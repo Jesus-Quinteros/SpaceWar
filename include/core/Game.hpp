@@ -38,10 +38,11 @@ private:
 private:
   sf::RenderWindow window;
   sf::FloatRect worldBounds;
+  float victoryTimer = 61.f;
 
-  bool running = true;
   bool started = false;
   bool gameOver = false;
+  bool victory = false;
 
   GameState gameState = GameState::WaitingStart;
   bool twoPlayers = false; 
@@ -51,21 +52,25 @@ private:
   sf::Font menuFont;
   sf::Font titleFont;
   sf::Font restartfont;
+  sf::Font timerFont;
   std::optional<Menu> menu;
   std::optional<Title> title;
   std::optional<Restart> restart;
+  std::optional<Timer> timer;
 
   sf::Texture p1LogoTexture;
   sf::Texture p2LogoTexture;
   sf::Texture enemyLogoTexture;
   sf::Texture neutralLogoTexture;
   sf::Texture gameOverLogoTexture;
+  sf::Texture victoryLogoTexture;
 
   std::optional<P1Logo> p1Logo;
   std::optional<P2Logo> p2Logo;
   std::optional<EnemyLogo> enemyLogo;
   std::optional<NeutralLogo> neutralLogo;
   std::optional<GameOverLogo> gameOverLogo;
+  std::optional<VictoryLogo> victoryLogo;
 
   sf::Texture projectileTexture;
   sf::Texture projectileEnemyTexture;
@@ -74,11 +79,11 @@ private:
   EnemyFactory enemyFactory;
   std::vector<std::unique_ptr<Enemy>> enemies;
   float enemySpawnTimer = 0.f;
-  float enemySpawnRate = 2.f;
+  float enemySpawnRate = 1.4f;
   sf::Texture neutralTexture;
   std::vector<std::unique_ptr<Neutral>> neutrals;
   float neutralSpawnTimer = 0.f;
-  float neutralSpawnRate = 4.f;
+  float neutralSpawnRate = 1.4f;
   std::vector<std::unique_ptr<Decorative>> decoratives;
   std::unique_ptr<DecorativeSpawner> decorativeSpawner;
   

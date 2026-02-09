@@ -10,6 +10,15 @@ private:
   std::optional<sf::Sprite> gameOverLogo;
 };
 
+class VictoryLogo {
+public:
+  VictoryLogo(sf::Texture& texture);
+  void draw(sf::RenderWindow& window);
+
+private:
+  std::optional<sf::Sprite> victoryLogo;
+};
+
 class P1Logo {
 public:
   P1Logo(sf::Texture& texture);

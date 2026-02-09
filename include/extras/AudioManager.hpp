@@ -13,7 +13,8 @@ enum class SoundType {
   PlayerShoot,
   EnemyExplosion,
   PlayerExplosion,
-  GameOver
+  GameOver,
+  Victory
 };
 
 class AudioManager {

@@ -32,3 +32,13 @@ private:
   std::optional<sf::Text> restart;
 };
 
+class Timer {
+public:
+  Timer(sf::Font& font);
+  void setString(std::string string);
+  void draw(sf::RenderWindow& window);
+
+private:
+  std::optional<sf::Text> timer;
+};
+

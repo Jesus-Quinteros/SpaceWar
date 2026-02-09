@@ -23,6 +23,7 @@ bool AudioManager::loadResources() {
   if (!soundBuffers[SoundType::EnemyExplosion].loadFromFile("sounds/enemyExplosion-sound.mp3")) { std::cout << "ERROR al cargar enemyExplosion-sound\n"; }
   if (!soundBuffers[SoundType::PlayerExplosion].loadFromFile("sounds/playerExplosion-sound.mp3")) { std::cout << "ERROR al cargar playerExplosion-sound\n"; }
   if (!soundBuffers[SoundType::GameOver].loadFromFile("sounds/gameover-sound.mp3")) { std::cout << "ERROR al cargar gameover-sound\n"; }
+  if (!soundBuffers[SoundType::Victory].loadFromFile("sounds/victory-sound.mp3")) { std::cout << "ERROR al cargar victory-sound\n"; }
 
   for (auto& [type, buffer] : soundBuffers) {
     sounds[type].emplace(buffer);

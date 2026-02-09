@@ -103,3 +103,22 @@ void Restart::draw(sf::RenderWindow& window) {
   window.draw(*restart);
 }
 
+Timer::Timer(sf::Font& font) {
+  timer.emplace(font);
+  timer->setFont(font);
+  timer->setCharacterSize(30);
+  sf::FloatRect boundingTitle = timer->getLocalBounds();
+  timer->setOrigin({boundingTitle.size.x/2.f, boundingTitle.size.y/1.13f});
+  timer->setPosition({640.f, 30.f});
+}
+ void Timer::setString(std::string string) {
+  timer->setString(string);
+  sf::FloatRect boundingTitle = timer->getLocalBounds();
+  timer->setOrigin({boundingTitle.size.x/2.f, boundingTitle.size.y/1.13f});
+  timer->setPosition({640.f, 30.f});
+}
+
+void Timer::draw(sf::RenderWindow& window) {
+  window.draw(*timer);
+}
+

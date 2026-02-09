@@ -36,20 +36,24 @@ Game::Game()
   if (!enemyLogoTexture.loadFromFile("textures/logos/enemyLogo.png")) { std::cout << "ERROR al cargar gameOverTexture\n"; }
   if (!neutralLogoTexture.loadFromFile("textures/logos/asteroidLogo.png")) { std::cout << "ERROR al cargar gameOverTexture\n"; }
   if (!gameOverLogoTexture.loadFromFile("textures/logos/gameoverLogo.png")) { std::cout << "ERROR al cargar gameOverTexture\n"; }
+  if (!victoryLogoTexture.loadFromFile("textures/logos/victoryLogo.png")) { std::cout << "ERROR al cargar victoryLogoTexture\n"; }
 
   p1Logo.emplace(p1LogoTexture);
   p2Logo.emplace(p2LogoTexture);
   enemyLogo.emplace(enemyLogoTexture);
   neutralLogo.emplace(neutralLogoTexture);
   gameOverLogo.emplace(gameOverLogoTexture);
+  victoryLogo.emplace(victoryLogoTexture);
 
   if (!titleFont.openFromFile("fonts/Asteroid Blaster.ttf")) { std::cout << "ERROR al cargar titleFont\n"; }
   if (!menuFont.openFromFile("fonts/Adventure Hollow.otf")) { std::cout << "ERROR al cargar menuFont\n"; }
   if (!restartfont.openFromFile("fonts/Bebas-Regular.otf")) { std::cout << "ERROR al cargar restartfont\n"; }
+  if (!timerFont.openFromFile("fonts/Bebas-Regular.otf")) { std::cout << "ERROR al cargar timerFont\n"; }
 
   menu.emplace(menuFont);
   title.emplace(titleFont);
   restart.emplace(restartfont);
+  timer.emplace(timerFont);
 
   if (!P1Texture.loadFromFile("textures/player/neutralP1.png")) { std::cout << "ERROR al cargar P1Texture\n"; }
   if (!P2Texture.loadFromFile("textures/player/neutralP2.png")) { std::cout << "ERROR al cargar P2Texture\n"; }
@@ -177,14 +181,16 @@ void Game::processEvents() {
           gameState = GameState::Playing;
           audio.playMusic(MusicType::Gameplay);
         }
-      } else if (gameState == GameState::GameOver) {
+      } else if (gameState == GameState::GameOver || gameState == GameState::Victory) {
         if (key->scancode == sf::Keyboard::Scancode::Enter) {
 
           gameState = GameState::WaitingStart;
           gameState = GameState::WaitingStart;
           started = false;
           gameOver = false;
+          victory = false;
           collisionSoundOcurredP1 = collisionSoundOcurredP2 = false;
+          victoryTimer = 61.f;
 
           enemies.clear();
           projectiles.clear();
@@ -214,7 +220,8 @@ void Game::update(float dt) {
   for (auto& p : projectiles)
     p->update(dt);
 
-  handleCollisions();
+  if (gameState != GameState::Victory)
+    handleCollisions();
 
   if (player1 && (player1->isAlive() || player1->isDestroying())) {
     player1->update(dt);
@@ -251,7 +258,8 @@ void Game::update(float dt) {
 
   enemySpawnTimer -= dt;
 
-  if (enemySpawnTimer <= 0.f && player1) {
+  if (gameState != GameState::Victory) {
+    if (enemySpawnTimer <= 0.f && player1) {
     float y = static_cast<float>(rand() % window.getSize().y);
     enemies.push_back(
       enemyFactory.create(
@@ -261,6 +269,7 @@ void Game::update(float dt) {
       )
     );
     enemySpawnTimer = enemySpawnRate;
+    }
   }
 
   std::erase_if(enemies,
@@ -298,6 +307,36 @@ void Game::update(float dt) {
       [](const auto& d) { return !d->isAlive(); });
 
   checkGameOver();
+
+  if (gameState == GameState::Playing) {
+    victoryTimer -= dt;
+    if (victoryTimer <= 0.f) {
+      bool p1Alive = player1 && player1->isAlive() && !player1->isDestroying();
+      bool p2Alive = twoPlayers && player2 && player2->isAlive() && !player2->isDestroying();
+
+      if (p1Alive || p2Alive) {
+        gameState = GameState::Victory;
+        audio.playMusic(MusicType::Menu);
+      }
+    }
+  }
+
+  if ((player1 && player1->isAlive() && !player1->isDestroying()) || twoPlayers && player2 && player2->isAlive() && !player2->isDestroying()) {
+    int seconds = static_cast<int>(victoryTimer);
+    int minutes = seconds / 60;
+    int secs = seconds % 60;
+
+    timer->setString(std::to_string(minutes) + ":" + (secs < 10 ? "0" : "") + std::to_string(secs));
+  }
+
+  if (gameState == GameState::Victory && !victory) {
+    victory = true;
+    for (auto& e : enemies) {
+      e->startDestroy();
+      audio.playSound(SoundType::EnemyExplosion);
+    }
+    audio.playSound(SoundType::Victory);
+  }
 }
 
 void Game::render() {
@@ -340,6 +379,9 @@ void Game::render() {
         e->draw(window);
       }
     }
+
+    timer->draw(window);
+
   } else if (gameState == GameState::GameOver) {
 
     for (auto& d : decoratives)
@@ -358,6 +400,34 @@ void Game::render() {
       if (e->isAlive() || e->isDestroying()) {
         e->draw(window);
       }
+    }
+
+  } else {
+
+    for (auto& d : decoratives)
+      d->draw(window);
+
+    victoryLogo->draw(window);
+    restart->draw(window);
+
+    for (auto& n : neutrals)
+      n->draw(window);
+
+    for (auto& p : projectiles)
+      p->draw(window);
+
+    for (auto& e : enemies) {
+      if (e->isAlive() || e->isDestroying()) {
+        e->draw(window);
+      }
+    }
+
+    if (started && player1 && player1->isAlive()) {
+      player1->draw(window);
+    }
+
+    if (twoPlayers && started && player2 && player2->isAlive()) {
+      player2->draw(window);
     }
   }
 
@@ -388,6 +458,20 @@ void Game::handleCollisions() {
           }
         }
       }
+      for (auto& n : neutrals) {
+        if (!n->isAlive()) continue;
+
+        Circle cn = n->circleBounds();
+        sf::Vector2f diff = cp.center - cn.center;
+        float dist2 = diff.x*diff.x + diff.y*diff.y;
+        float rsum = cp.radius + cn.radius;
+
+        if (dist2 < rsum*rsum) {
+          p->destroy();
+          break;
+        }
+      }
+
     } else {
       if (player1 && player1->isAlive()) {
         Circle cpl = player1->circleBounds();
@@ -487,10 +571,8 @@ void Game::checkGameOver() {
 
   if (p1Dead && (!twoPlayers || p2Dead)) {
     if (gameState != GameState::GameOver) { 
-      // Solo entrar aquí la primera vez
       gameOver = true;
       gameState = GameState::GameOver;
-
       audio.playSound(SoundType::GameOver);
     }
     audio.playMusic(MusicType::Menu);
