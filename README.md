@@ -21,13 +21,13 @@ Pueden modificarse a conveniencia desde el código fuente.
 | `T` | Disparo P1 |
 | `Left` `Up` `Right` `Down` | Movimiento P2 |
 | `RShift` | Disparo P2 |
-| `Up` / `Down` | Seleccionar cantidad de jugadores |
-| `Enter` | Empezar / reiniciar juego |
+| `Up` / `Down` | Seleccionar cantidad de jugadores (en modo menú) |
+| `Enter` | Empezar / reiniciar juego (en modo menú, gameover o victory) |
 | `Esc` | Salir del juego |
 
 ## Requerimientos
 
-1. `SFML 3.0.2`, puede revisar la versión con:
+1. `SFML 3.0.2`, igualmente desde la v3.0.0 también es funcional, puede revisar la versión con:
    - En Windows:
      
        - Si instalaste SFML con vcpkg:
@@ -36,14 +36,21 @@ Pueden modificarse a conveniencia desde el código fuente.
            vcpkg list | Select-String sfml
            ```
            
-       - Si instalaste SFML con MSYS2 o pacman:
+       - Si instalaste SFML con MSYS2 o MinGW:
          
            ```bash
-           pacman -Qi mingw-w64-x86_64-sfml
+           // Para MSYS2 revisa las rutas
+           cd C:/msys64/ucrt64/bin
+           cd C:/msys64/ucrt64/include
+           cd C:/msys64/ucrt64/bin
+           // Deben estar las .dll, el directorio SFML, y las lib respectivamente.
            ```
+           
+           Si usas MinGW las rutas son las mismas pero con `'mingw32'` o `'mingw64'` en el nombre, o puede que varíe un poco la ruta completa, depende de tu instalación de MSYS2
+           (y de no tener estas rutas en el PATH, tendrá que especificarlas en el CMakeLists.txt del proyecto)
          
-       - Si instalaste manualmente dirígite al directorio donde lo descargaste/instalaste y el nombre del comprimido .zip u otro contendrá la versión, o también
-         en el archivo SFML/Config.hpp en la carpeta include y revisa las macros de versión.
+       - Si instalaste SFML manualmente en otro directorio dirígite al mismo, y el nombre del comprimido .zip (u otro) contendrá la versión, o también
+         en la carpeta include/SFML en el archivo Config.hpp (con este archivo cmake será capaz de encontrar la versión de SFML) y revisa las macros de versión.
      
    - En Arch Linux:
 
@@ -107,4 +114,4 @@ Pueden modificarse a conveniencia desde el código fuente.
 
 ---
 
-¡Esperamos que disfrutes jugando o aprendiendo de este juego! Si tienes alguna pregunta o sugerencia, no dudes en contactarme. ¡Happy SpaceWar!
+¡Esperamos que disfrutes jugando o aprendiendo de este juego! Si tienes alguna pregunta o sugerencia, no dudes en contactarme. ¡Dominate SpaceWar!
