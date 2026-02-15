@@ -33,7 +33,13 @@ Pueden modificarse a conveniencia desde el código fuente.
        - Si instalaste SFML con vcpkg:
          
            ```bash
+           // En PowerShell
            vcpkg list | Select-String sfml
+           ```
+           
+           ```bash
+           // En CMD
+           vcpkg list | findstr sfml
            ```
            
        - Si instalaste SFML con MSYS2 o MinGW:
