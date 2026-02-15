@@ -28,6 +28,13 @@ Pueden modificarse a conveniencia desde el código fuente.
 ## Requerimientos
 
 1. `SFML 3.0.2`, igualmente desde la v3.0.0 también es funcional, puede revisar la versión con:
+
+   - En Arch Linux:
+
+     ```bash
+     pkg-config --modversion sfml-all
+     ```
+     
    - En Windows:
      
        - Si instalaste SFML con vcpkg:
@@ -42,27 +49,21 @@ Pueden modificarse a conveniencia desde el código fuente.
            vcpkg list | findstr sfml
            ```
            
-       - Si instalaste SFML con MSYS2 o MinGW:
+       - Si instalaste SFML con MSYS2 o MinGW: (las rutas pueden variar un poco, depende de tu instalación de la herramienta)
          
            ```bash
-           // Para MSYS2 revisa las rutas
-           cd C:/msys64/ucrt64/bin
-           cd C:/msys64/ucrt64/include
-           cd C:/msys64/ucrt64/bin
-           // Deben estar las .dll, el directorio SFML, y las lib respectivamente.
+           // Para MSYS2
+           cd C:/msys64/ucrt64/include/SFML
+           // Para MinGW
+           cd C:/msys64/mingw64/include/SFML
            ```
+    
+           Aquí deberías encontrar el archivo Config.hpp, abrirlo y revisar las macros de versión.
            
-           Si usas MinGW las rutas son las mismas pero con `'mingw32'` o `'mingw64'` en el nombre, o puede que varíe un poco la ruta completa, depende de tu instalación de MSYS2
-           (y de no tener estas rutas en el PATH, tendrá que especificarlas en el CMakeLists.txt del proyecto)
          
-       - Si instalaste SFML manualmente en otro directorio dirígite al mismo, y el nombre del comprimido .zip (u otro) contendrá la versión, o también
-         en la carpeta include/SFML en el archivo Config.hpp (con este archivo cmake será capaz de encontrar la versión de SFML) y revisa las macros de versión.
-     
-   - En Arch Linux:
-
-     ```bash
-     pkg-config --modversion sfml-all
-     ```
+       - Si instalaste SFML manualmente en otro directorio dirígite al mismo,
+         y el nombre del comprimido .zip (u otro) indicará la versión, o de igual forma el archivo Config.hpp también en inlcude/SFML contendrá la versión.
+         (De haberlo instaldo de esta forma, en un directorio personalizado, tendrás que especificar las rutas concretas en el CMakeLists.txt del proyecto, a menos que ya estén incluidas en el PATH)
     
    - En Ubuntu:
 
@@ -70,14 +71,14 @@ Pueden modificarse a conveniencia desde el código fuente.
      Dpkg -s sfml
      ```
      
-2. Herramienta de automatización de compilación `Cmake` versión mínima 3.30, puede revisar con:
+3. Herramienta de automatización de compilación `Cmake` versión mínima 3.30, puede revisar con:
 
     ```bash
     cmake --version
     ```
     Puede utilizar GNU Make configurando un Makefile personalizado, pero naturalmente este proyecto ya está configurado para una compilación rápida con Cmake.
      
-3. Estándar de leguaje `C++20`, el archivo CMakeLists.txt llamará automáticamente a ese estándar y lo utilizará para la compilación.
+4. Estándar de leguaje `C++20`, el archivo CMakeLists.txt llamará automáticamente a ese estándar y lo utilizará para la compilación.
 
 ## Compilación
 
@@ -108,7 +109,9 @@ Pueden modificarse a conveniencia desde el código fuente.
    make
    ```
 
-4. **Ejecución:** Esto generará el target `spacewar` por defecto en la raíz del proyecto, y lo puede correr con `./spacewar` y empezar a jugar.
+## Ejecución
+
+La compilación generará el target `spacewar` por defecto en la raíz del proyecto, y lo puede correr con `./spacewar` y empezar a jugar.
    
    - Consideración: En caso haya realizado la compilación desde `/build` se sugiere regresar al directorio raíz del proyecto (`cd ..`) y correr el ejecutable desde ahí,
      ya que intentar ejecutar desde build (por ejemplo `../spacewar`) resultará en un error general del programa, ya que no será capaz de encontrar las rutas
