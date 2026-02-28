@@ -6,7 +6,20 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 
-find_package(SFML 3 REQUIRED Graphics Window System Audio COMPONENTS)
+find_package(SFML 3 QUIET COMPONENTS Graphics Window System Audio)
+
+if(NOT TARGET SFML::Graphics)
+  message(WARNING "No se encontró sfml3, descargando...")
+  include(FetchContent)
+
+  FetchContent_Declare(
+    SFML
+    GIT_REPOSITORY https://github.com/SFML/SFML.git
+    GIT_TAG 3.0.0
+  )
+
+  FetchContent_MakeAvailable(SFML)
+endif()
 
 add_executable(${PROJECT_NAME}
   src/main.cpp
