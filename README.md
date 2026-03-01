@@ -27,6 +27,10 @@ Pueden modificarse a conveniencia desde el código fuente.
 
 ## Requerimientos
 
+> [!NOTE]
+> De no tener SFML instalado, no contar con la versión requerida, o no desea actualizar su versión actual; puede continuar con la Compilación.
+> El archivo cmake se encargará de descargar y administrar las dependencias necesarias localmente en el directorio del proyecto, para compilar y ejecutar el programa.
+
 1. `SFML 3.0.2`, igualmente desde la v3.0.0 también es funcional, puede revisar la versión con:
 
    - En Arch Linux:
@@ -42,9 +46,6 @@ Pueden modificarse a conveniencia desde el código fuente.
            ```bash
            // En PowerShell
            vcpkg list | Select-String sfml
-           ```
-           
-           ```bash
            // En CMD
            vcpkg list | findstr sfml
            ```
@@ -62,14 +63,8 @@ Pueden modificarse a conveniencia desde el código fuente.
            
          
        - Si instalaste SFML manualmente en otro directorio dirígite al mismo,
-         y el nombre del comprimido .zip (u otro) indicará la versión, o de igual forma el archivo Config.hpp también en inlcude/SFML contendrá la versión.
-         (De haberlo instaldo de esta forma, en un directorio personalizado, tendrás que especificar las rutas concretas en el CMakeLists.txt del proyecto, a menos que ya estén incluidas en el PATH)
-    
-   - En Ubuntu:
-
-     ```bash
-     Dpkg -s sfml
-     ```
+         y el nombre del comprimido .zip (u otro) indicará la versión, o de igual forma el archivo Config.hpp contendrá la versión.
+         Además, tendrás que especificar las rutas concretas a los recursos de SFML en el CMakeLists.txt del proyecto, a menos que ya estén incluidas en el PATH)
      
 3. Herramienta de automatización de compilación `Cmake` versión mínima 3.30, puede revisar con:
 
@@ -78,7 +73,7 @@ Pueden modificarse a conveniencia desde el código fuente.
     ```
     Puede utilizar GNU Make configurando un Makefile personalizado, pero naturalmente este proyecto ya está configurado para una compilación rápida con Cmake.
      
-4. Estándar de leguaje `C++20`, el archivo CMakeLists.txt llamará automáticamente a ese estándar y lo utilizará para la compilación.
+4. Estándar de leguaje `C++20`, el archivo CMakeLists.txt llamará automáticamente a dicho estándar y lo utilizará para la compilación.
 
 ## Compilación
 
@@ -105,17 +100,18 @@ Pueden modificarse a conveniencia desde el código fuente.
    cmake --build build
    // O desde directorio /build
    cmake .
-   // O también
+   // O también desde directorio /build
    make
    ```
 
 ## Ejecución
 
 La compilación generará el target `spacewar` por defecto en la raíz del proyecto, y lo puede correr con `./spacewar` y empezar a jugar.
-   
-   - Consideración: En caso haya realizado la compilación desde `/build` se sugiere regresar al directorio raíz del proyecto (`cd ..`) y correr el ejecutable desde ahí,
-     ya que intentar ejecutar desde build (por ejemplo `../spacewar`) resultará en un error general del programa, ya que no será capaz de encontrar las rutas
-     a los recursos (fonts, textures, sounds) del juego.
+
+   > [!IMPORTANT]
+   >  En caso haya realizado la compilación desde `/build` se sugiere regresar al directorio raíz del proyecto (`cd ..`) y correr el ejecutable desde ahí,
+   > ya que intentar ejecutar desde build (por ejemplo `../spacewar`) resultará en un error general del programa, ya que no será capaz de encontrar las rutas
+   > a los recursos (fonts, textures, sounds) del juego.
 
 ## Contribuciones
 
