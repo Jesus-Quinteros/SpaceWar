@@ -9,13 +9,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 find_package(SFML 3 QUIET COMPONENTS Graphics Window System Audio)
 
 if(NOT TARGET SFML::Graphics)
-  message(WARNING "No se encontró sfml3, descargando...")
+  string(ASCII 27 Esc)
+  message("${Esc}[32m[->] No se encontró sfml 3.0.2, descargando dependencias...${Esc}[0m")
   include(FetchContent)
 
   FetchContent_Declare(
     SFML
     GIT_REPOSITORY https://github.com/SFML/SFML.git
-    GIT_TAG 3.0.0
+    GIT_TAG 3.0.2
   )
 
   FetchContent_MakeAvailable(SFML)
