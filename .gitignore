@@ -1,4 +1,7 @@
 build
 spacewar
-spacewar.exe
+*.exe
+*.out
+*.dll
+*.so
 
